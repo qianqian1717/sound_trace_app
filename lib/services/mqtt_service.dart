@@ -65,22 +65,22 @@ class MqttService {
       debugPrint('MQTT 已连接');
       _connected = true;
       client.subscribe(_topic, MqttQos.atMostOnce);
+
+      // 连接成功后再监听 updates
+      client.updates!.listen((events) {
+        for (final e in events) {
+          final payload = e.payload as MqttPublishMessage;
+          final msg = MqttPublishPayload.bytesToStringAsString(
+              payload.payload.message);
+          _handleMessage(msg);
+        }
+      });
     };
 
     client.onDisconnected = () {
       debugPrint('MQTT 已断开');
       _connected = false;
     };
-
-    client.updates!.listen((events) {
-      for (final e in events) {
-        final payload = e.payload as MqttPublishMessage;
-        final msg = MqttPublishPayload.bytesToStringAsString(
-            payload.payload.message);
-        _handleMessage(msg);
-      }
-    });
-
   _client = client;
   try {
     await client.connect();
