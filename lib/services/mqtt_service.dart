@@ -83,7 +83,7 @@ class MqttService {
     };
   _client = client;
   try {
-    await client.connect();
+    await client.connect('sound_trace_app', 'ST_SSS_APP');
   } catch (e) {
     debugPrint('MQTT 连接失败: $e');
   }
