@@ -322,7 +322,7 @@ final appState = AppState();
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
-                        appState.isConnected ? '信噪比 18.6 dB' : '信噪比 -- dB',
+                        appState.isConnected ? '信噪比 17.7 dB' : '信噪比 -- dB',
                         style: const TextStyle(
                             fontSize: 11, color: Color(0xFF6B6B8D)),
                       ),

@@ -1,9 +1,53 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../models/app_state.dart';
 
-class ProfileAvatarPage extends StatelessWidget {
+class ProfileAvatarPage extends StatefulWidget {
   const ProfileAvatarPage({super.key});
 
-  void _showPicker(BuildContext context) {
+  @override
+  State<ProfileAvatarPage> createState() => _ProfileAvatarPageState();
+}
+
+class _ProfileAvatarPageState extends State<ProfileAvatarPage> {
+  final appState = AppState();
+  final picker = ImagePicker();
+
+  Future<void> _pickFromCamera() async {
+    final XFile? photo = await picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
+    if (photo == null) return;
+    setState(() => appState.avatarPath = photo.path);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('头像已更新')),
+      );
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    final XFile? photo = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
+    if (photo == null) return;
+    setState(() => appState.avatarPath = photo.path);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('头像已更新')),
+      );
+    }
+  }
+
+  void _showPicker() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -19,10 +63,7 @@ class ProfileAvatarPage extends StatelessWidget {
               title: const Text('拍照'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: 接 image_picker 后调用相机
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('稍后会接相机功能')),
-                );
+                _pickFromCamera();
               },
             ),
             ListTile(
@@ -30,10 +71,7 @@ class ProfileAvatarPage extends StatelessWidget {
               title: const Text('从相册选择'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: 接 image_picker 后打开相册
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('稍后会接相册功能')),
-                );
+                _pickFromGallery();
               },
             ),
             const SizedBox(height: 8),
@@ -45,6 +83,7 @@ class ProfileAvatarPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasAvatar = appState.avatarPath.isNotEmpty;
     return Scaffold(
       backgroundColor: const Color(0xFFF7F5FF),
       body: SafeArea(
@@ -82,20 +121,28 @@ class ProfileAvatarPage extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xFF8A8AA8),
                         borderRadius: BorderRadius.circular(24),
+                        image: (hasAvatar && !kIsWeb)
+                            ? DecorationImage(
+                                image: FileImage(File(appState.avatarPath)),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
-                      child: const Center(
-                        child: Text('迹',
-                            style: TextStyle(
-                                fontSize: 40,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                      ),
+                      child: (hasAvatar && !kIsWeb)
+                          ? null
+                          : const Center(
+                              child: Text('迹',
+                                  style: TextStyle(
+                                      fontSize: 40,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white)),
+                            ),
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () => _showPicker(context),
+                        onPressed: _showPicker,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF8A8AA8),
                           foregroundColor: Colors.white,
